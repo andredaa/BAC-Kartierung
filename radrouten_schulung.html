@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radrouten Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css">
+  <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+    }
+
+    #map canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* Style switcher */
+    .style-switcher {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 50;
+    }
+
+    .style-btn {
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .style-btn.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .style-btn:hover:not(.active) {
+      background: #e5e7eb;
+    }
+
+    /* Burger menu button */
+    .menu-toggle {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      padding: 0.75rem;
+      border: none;
+      cursor: pointer;
+      z-index: 50;
+    }
+
+    .menu-toggle svg {
+      height: 1.5rem;
+      width: 1.5rem;
+      color: #374151;
+    }
+
+    /* Menu panel */
+    .menu-panel {
+      position: absolute;
+      top: 1rem;
+      left: 5rem;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      width: min(20rem, calc(100vw - 8rem));
+      max-width: 20rem;
+      z-index: 50;
+      display: none;
+    }
+
+    .menu-panel.open {
+      display: block;
+    }
+
+    .menu-panel h2 {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group select,
+    .form-group input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .form-group select:focus,
+    .form-group input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .load-btn {
+      width: 100%;
+      background: #3b82f6;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .load-btn:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .load-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    /* Survey Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background: white;
+      border: 2px solid #9ca3af;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      border-radius: 0.5rem;
+      width: 90vw;
+      height: 90vh;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #d1d5db;
+      background: #f3f4f6;
+      border-radius: 0.5rem 0.5rem 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .modal-header h6 {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #4b5563;
+      cursor: pointer;
+      font-size: 1.5rem;
+      line-height: 1;
+      padding: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #1f2937;
+    }
+
+    .modal-body {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .modal-body iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #d1d5db;
+      background: #f9fafb;
+      border-radius: 0 0 0.5rem 0.5rem;
+      display: flex;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    .modal-footer button {
+      padding: 0.5rem 1.5rem;
+      background: #3b82f6;
+      color: white;
+      border-radius: 0.375rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .modal-footer button:hover {
+      background: #2563eb;
+    }
+
+    /* Confirmation Dialog */
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .dialog-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .dialog-content {
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      max-width: 400px;
+      width: 90vw;
+    }
+
+    .dialog-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+
+    .dialog-message {
+      margin-bottom: 1.5rem;
+      color: #4b5563;
+    }
+
+    .dialog-buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .dialog-btn {
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.375rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .dialog-btn.primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .dialog-btn.primary:hover {
+      background: #2563eb;
+    }
+
+    .dialog-btn.secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .dialog-btn.secondary:hover {
+      background: #d1d5db;
+    }
+  </style>
+</head>
+<body>
+  <!-- Map container -->
+  <div id="map"></div>
+
+  <!-- Style switcher -->
+  <div class="style-switcher">
+    <button class="style-btn active" data-style="light">Light</button>
+    <button class="style-btn" data-style="dark">Dark</button>
+    <button class="style-btn" data-style="satellite">Satellite</button>
+  </div>
+
+  <!-- Burger menu button -->
+  <button class="menu-toggle" id="menuToggle">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+
+  <!-- Menu panel -->
+  <div class="menu-panel" id="menuPanel">
+    <h2>Radrouten</h2>
+    
+    <div class="form-group">
+      <label for="routeSelect">Route ID</label>
+      <select id="routeSelect">
+        <!-- Options will be populated by JavaScript -->
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="directionSelect">Direction</label>
+      <select id="directionSelect">
+        <!-- Options will be populated by JavaScript -->
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="surveyUrlInput">Survey URL</label>
+      <input type="url" id="surveyUrlInput" placeholder="Enter survey URL" value="https://app.formbricks.com/s/cmnoq2dhm10wxqi01mtwxonvm?embed=true">
+    </div>
+    
+    <button class="load-btn" id="loadRouteBtn">Load Route</button>
+  </div>
+
+  <!-- Confirmation Dialog -->
+  <div class="dialog-overlay" id="confirmDialog">
+    <div class="dialog-content" onclick="event.stopPropagation()">
+      <div class="dialog-title">Start Survey</div>
+      <div class="dialog-message" id="dialogMessage">Do you want to fill out the survey for this segment?</div>
+      <div class="dialog-buttons">
+        <button class="dialog-btn secondary" id="dialogCancel">Cancel</button>
+        <button class="dialog-btn secondary" id="dialogRemove" style="display: none; background: #ef4444; color: white;">Remove from Completed</button>
+        <button class="dialog-btn primary" id="dialogSurvey">Survey</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Survey Modal -->
+  <div class="modal-overlay" id="surveyModal">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h6 id="modalTitle">Survey</h6>
+        <button class="modal-close" id="closeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <iframe id="surveyIframe" frameborder="0"></iframe>
+      </div>
+      <div class="modal-footer">
+        <button id="closeModalFooter">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const directionMapping = {
+      0: ["Schulung"],
+      1: ["Ost", "West"],
+      2: ["Nord", "Süd"],
+      3: ["Nordost", "Südwest"],
+      4: ["Ost", "West"],
+      5: ["Nord", "Süd"],
+      6: ["Nordost", "Südwest"],
+      7: ["Ost", "West"],
+      8: ["Nord", "Süd"],
+      9: ["Nordost", "Südwest"],
+      10: ["Ost", "West"],
+      11: ["Nord", "Süd"],
+      12: ["Nordost", "Südwest"],
+      13: ["Ost", "West"],
+      14: ["Nord", "Süd"],
+      15: ["Nordost", "Südwest"],
+      16: ["Ost", "West"],
+      17: ["Nord", "Süd"],
+      18: ["Nordost", "Südwest"],
+      19: ["Ost", "West"],
+      20: ["Nord", "Süd"],
+      21: ["Nordost", "Südwest"],
+      22: ["Ost", "West"],
+      23: ["Nord", "Süd"],
+    };
+
+    const schulung_segments = {
+"type": "FeatureCollection",
+"name": "schulung_segments",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "segment_id": "segment_0", "segment_idx": 0 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.974981531352455, 53.568704031484174 ], [ 9.974064402359232, 53.569309805543895 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_1", "segment_idx": 1 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.974063240843265, 53.569309583917004 ], [ 9.973398182670024, 53.569775907740876 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_2", "segment_idx": 2 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.97339879024517, 53.56977363432452 ], [ 9.973220979520875, 53.569895898260285 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_3", "segment_idx": 3 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.973207152800342, 53.569908098305888 ], [ 9.972381359384826, 53.570484414251013 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_4", "segment_idx": 4 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.972385148077763, 53.570494637443176 ], [ 9.971347363373127, 53.57119867467685 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_5", "segment_idx": 5 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.97135679932461, 53.571204276553772 ], [ 9.969954217602407, 53.571826135112985 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_6", "segment_idx": 6 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.969971410206767, 53.571831499815005 ], [ 9.970895982014298, 53.572509371164159 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_7", "segment_idx": 7 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.970906843747116, 53.572505400891771 ], [ 9.973209024692068, 53.574219731617205 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_8", "segment_idx": 8 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.973218383151504, 53.574211396303866 ], [ 9.974411586690081, 53.573472325308899 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_9", "segment_idx": 9 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.974411586688376, 53.573462600604358 ], [ 9.972966719203441, 53.572476304414693 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_10", "segment_idx": 10 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.972954425473802, 53.572473684512005 ], [ 9.972182300155765, 53.571921506325481 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_11", "segment_idx": 11 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.972185316191286, 53.571924869072546 ], [ 9.970782405945755, 53.572558208252531 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_12", "segment_idx": 12 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.970798041914946, 53.572560778298509 ], [ 9.970081097524826, 53.572928068559378 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_13", "segment_idx": 13 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.970123060148666, 53.572923297157161 ], [ 9.968051409736148, 53.574317876306623 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_14", "segment_idx": 14 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.968040331392189, 53.574278407718026 ], [ 9.967519544653044, 53.574693464698981 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_15", "segment_idx": 15 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.967501967240509, 53.574698683207288 ], [ 9.965498142119657, 53.573863713711035 ], [ 9.964838989119215, 53.573571470492055 ], [ 9.96419741353273, 53.573143539276657 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_16", "segment_idx": 16 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.96417143547859, 53.573114531862416 ], [ 9.96769570685268, 53.572300406303157 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_17", "segment_idx": 17 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.96769570685268, 53.572269093468719 ], [ 9.96991046093288, 53.571700239604382 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_18", "segment_idx": 18 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.969894985316586, 53.571692603305223 ], [ 9.971371488036255, 53.57087845036861 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_19", "segment_idx": 19 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.971353910623691, 53.570857574446279 ], [ 9.97213610551637, 53.570387863466806 ] ] } },
+{ "type": "Feature", "properties": { "segment_id": "segment_20", "segment_idx": 20 }, "geometry": { "type": "LineString", "coordinates": [ [ 9.972162471637375, 53.570382644426843 ], [ 9.974078409691089, 53.568936945493817 ] ] } }
+]
+};
+
+const schulung_points = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "station": "Geomatikum" },
+      "geometry": {
+        "coordinates": [9.973973772852673, 53.568374178481434],
+        "type": "Point"
+      },
+      "id": 0
+    },
+    {
+      "type": "Feature",
+      "properties": { "station": "Station 1" },
+      "geometry": {
+        "coordinates": [9.97166975081737, 53.57108101785366],
+        "type": "Point"
+      },
+      "id": 1
+    },
+    {
+      "type": "Feature",
+      "properties": { "station": "Station 2" },
+      "geometry": {
+        "coordinates": [9.973099637526332, 53.57409301446563],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "station": "Station 3" },
+      "geometry": {
+        "coordinates": [9.967265905005576, 53.57448989952127],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "station": "Station 4" },
+      "geometry": {
+        "coordinates": [9.964507575467337, 53.5732425801819],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "station": "Station 5" },
+      "geometry": {
+        "coordinates": [9.972318980521095, 53.57032479881073],
+        "type": "Point"
+      }
+    }
+  ]
+};
+
+
+    const mapStyles = {
+      light: "https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+      dark: "https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      satellite: {
+        version: 8,
+        sources: {
+          satellite: {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            ],
+            tileSize: 256,
+            attribution: "© Esri"
+          }
+        },
+        layers: [
+          {
+            id: "satellite",
+            type: "raster",
+            source: "satellite",
+            minzoom: 0,
+            maxzoom: 22
+          }
+        ]
+      }
+    };
+
+    // State
+    let map = null;
+    let currentStyle = "light";
+    let selectedRouteId = 0;
+    let selectedDirection = directionMapping[0][0];
+    let isLoading = false;
+    let selectedFeature = null;
+    let completedSurveys = new Set();
+
+    // DOM elements
+    const menuToggle = document.getElementById("menuToggle");
+    const menuPanel = document.getElementById("menuPanel");
+    const routeSelect = document.getElementById("routeSelect");
+    const directionSelect = document.getElementById("directionSelect");
+    const surveyUrlInput = document.getElementById("surveyUrlInput");
+    const loadRouteBtn = document.getElementById("loadRouteBtn");
+    const surveyModal = document.getElementById("surveyModal");
+    const surveyIframe = document.getElementById("surveyIframe");
+    const modalTitle = document.getElementById("modalTitle");
+    const closeModal = document.getElementById("closeModal");
+    const closeModalFooter = document.getElementById("closeModalFooter");
+    const confirmDialog = document.getElementById("confirmDialog");
+    const dialogMessage = document.getElementById("dialogMessage");
+    const dialogCancel = document.getElementById("dialogCancel");
+    const dialogSurvey = document.getElementById("dialogSurvey");
+    const dialogRemove = document.getElementById("dialogRemove");
+    const styleBtns = document.querySelectorAll(".style-btn");
+
+    // Initialize map
+    function initMap() {
+      map = new maplibregl.Map({
+        container: "map",
+        style: mapStyles[currentStyle],
+        center: [10.0, 51.5],
+        zoom: 6,
+        renderWorldCopies: false,
+        attributionControl: true
+      });
+
+      // Error handling
+      map.on('error', (e) => {
+        console.error('Map error:', e);
+      });
+
+      // Add controls
+      map.addControl(new maplibregl.ScaleControl(), "bottom-right");
+      map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+      
+      // Add GeolocateControl for live GPS tracking
+      const geolocateControl = new maplibregl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showAccuracyCircle: true
+      });
+      map.addControl(geolocateControl, "bottom-right");
+      
+      // Force resize on load to ensure proper rendering in Chrome
+      map.on('load', () => {
+        setTimeout(() => {
+          map.resize();
+        }, 100);
+      });
+    }
+
+    // Populate route select
+    function populateRouteSelect() {
+      routeSelect.innerHTML = "";
+      const schulung = document.createElement("option");
+      schulung.value = 0;
+      schulung.textContent = `Schulung`;
+      routeSelect.appendChild(schulung);
+      for (let i = 1; i <= 23; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `Route ${i}`;
+        routeSelect.appendChild(option);
+      }
+      routeSelect.value = selectedRouteId;
+    }
+
+    // Update direction select based on selected route
+    function updateDirectionSelect() {
+      const directions = directionMapping[selectedRouteId] || ["Nord", "Süd"];
+      directionSelect.innerHTML = "";
+      
+      directions.forEach(direction => {
+        const option = document.createElement("option");
+        option.value = direction;
+        option.textContent = direction;
+        directionSelect.appendChild(option);
+      });
+      
+      selectedDirection = directions[0];
+      directionSelect.value = selectedDirection;
+    }
+
+    // Switch map style
+    function switchMapStyle(style) {
+      if (!map) return;
+      
+      currentStyle = style;
+      
+      // Update button states
+      styleBtns.forEach(btn => {
+        if (btn.dataset.style === style) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+      
+      map.setStyle(mapStyles[style]);
+      
+      // Re-add layers after style change
+      map.once("style.load", () => {
+        loadRadroute();
+      });
+    }
+
+    // Load radroute from backend or local file
+    async function loadRadroute() {
+      console.log("loading route", selectedDirection, selectedRouteId, map);
+      if (!map || selectedRouteId === undefined || !selectedDirection) return;
+      
+      isLoading = true;
+      loadRouteBtn.disabled = true;
+      loadRouteBtn.textContent = "Loading...";
+      
+      try {
+        // Remove existing radroute layers if present
+        const layersToRemove = ["radroute-label", "radroute-highlight", "radroute-highlight-outline", "radroute-completed", "radroute"];
+        layersToRemove.forEach(layerId => {
+          if (map.getLayer(layerId)) {
+            map.removeLayer(layerId);
+          }
+        });
+        if (map.getSource("radroute-source")) {
+          map.removeSource("radroute-source");
+        }
+        
+        let data;
+        console.log("hello", selectedRouteId, selectedDirection)
+        // Check if route 1 Ost - load from local file
+        if (selectedRouteId === 0 && selectedDirection === "Schulung") {
+          console.log("using debug json")
+          data = schulung_segments;
+          
+        } else {
+          // Fetch radroute data from backend
+          const url = `http://localhost:5000/get_layer?layer_name=radrouten&route_id=${selectedRouteId}&direction=${encodeURIComponent(selectedDirection)}`;
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          
+          if (!response.ok) {
+            console.error("Failed to fetch radroute:", response.status);
+            return;
+          }
+          
+          data = await response.json();
+        }
+        
+        // Generate color mapping based on segment_idx
+        const segmentColors = {};
+        const generateRandomColor = (seed) => {
+          console.log("seed", seed)
+          // Use segment_idx as seed for consistent bright colors
+          // Ensure colors are bright by adding 128 to base value (range 128-255)
+          let r = Math.floor((Math.sin(seed * 12.9898) + 1) * 63.75) + 128;
+          let g = Math.floor((Math.sin(seed * 78.233) + 1) * 63.75) + 128;
+          let b = Math.floor((Math.sin(seed * 43.758) + 1) * 63.75) + 128;
+          
+          // Avoid white/very light colors - if all channels are too high, reduce them
+          if (r > 240 && g > 240 && b > 240) {
+            // Make at least one channel significantly darker
+            const whichChannel = seed % 3;
+            if (whichChannel === 0) r = 128;
+            else if (whichChannel === 1) g = 128;
+            else b = 128;
+          }
+          
+          // Avoid dark colors by ensuring at least one channel is very bright
+          const maxChannel = Math.max(r, g, b);
+          if (maxChannel < 200) {
+            // Boost the brightest channel to make color more vibrant
+            const boostFactor = 255 / maxChannel;
+            return `rgb(${Math.min(255, Math.floor(r * boostFactor))}, ${Math.min(255, Math.floor(g * boostFactor))}, ${Math.min(255, Math.floor(b * boostFactor))})`;
+          }
+          
+          return `rgb(${r}, ${g}, ${b})`;
+        };
+        
+        // Build color expression for MapLibre
+        const colorExpression = ["match", ["get", "segment_idx"]];
+        
+        if (data.features) {
+          data.features.forEach(feature => {
+            const segmentIdx = feature.properties.segment_idx;
+            if (segmentIdx !== undefined && !segmentColors[segmentIdx]) {
+              segmentColors[segmentIdx] = generateRandomColor(segmentIdx);
+              colorExpression.push(segmentIdx, segmentColors[segmentIdx]);
+            }
+          });
+        }
+        
+        // Add fallback color
+        colorExpression.push("#ef4444");
+        
+        // Add source and layer
+        map.addSource("radroute-source", {
+          type: "geojson",
+          data: data,
+        });
+        
+        map.addLayer({
+          id: "radroute",
+          type: "line",
+          source: "radroute-source",
+          paint: {
+            "line-color": colorExpression,
+            "line-width": 4,
+            "line-opacity": 0.8,
+          },
+        });
+
+        // Add layer for completed surveys (black)
+        map.addLayer({
+          id: "radroute-completed",
+          type: "line",
+          source: "radroute-source",
+          paint: {
+            "line-color": "#000000",
+            "line-width": 4,
+            "line-opacity": 0.8,
+          },
+          filter: ["in", "segment_id"],
+        });
+
+        // Add white outline layer for highlighted feature
+        map.addLayer({
+          id: "radroute-highlight-outline",
+          type: "line",
+          source: "radroute-source",
+          paint: {
+            "line-color": "#ffffff",
+            "line-width": 8,
+            "line-opacity": 1,
+          },
+          filter: ["==", "segment_id", ""],
+        });
+
+        // Add layer for highlighted feature
+        map.addLayer({
+          id: "radroute-highlight",
+          type: "line",
+          source: "radroute-source",
+          paint: {
+            "line-color": "#fbbf24",
+            "line-width": 6,
+            "line-opacity": 1,
+          },
+          filter: ["==", "segment_id", ""],
+        });
+
+        // Add label layer for all segments
+        map.addLayer({
+          id: "radroute-label",
+          type: "symbol",
+          source: "radroute-source",
+          layout: {
+            "text-field": ["get", "segment_idx"],
+            "text-size": 14,
+            "text-offset": [0, -1.5],
+            "symbol-placement": "line-center",
+          },
+          paint: {
+            "text-color": "#000000",
+            "text-halo-color": "#ffffff",
+            "text-halo-width": 2,
+          },
+        });
+
+        // Add click handler for features
+        map.on("click", "radroute", handleFeatureClick);
+        map.on("mouseenter", "radroute", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "radroute", () => {
+          map.getCanvas().style.cursor = "";
+        });
+        
+        // Fit map to radroute bounds
+        if (data.features && data.features.length > 0) {
+          const bounds = new maplibregl.LngLatBounds();
+          data.features.forEach(feature => {
+            if (feature.geometry.type === "LineString") {
+              feature.geometry.coordinates.forEach(coord => {
+                bounds.extend(coord);
+              });
+            } else if (feature.geometry.type === "MultiLineString") {
+              feature.geometry.coordinates.forEach(line => {
+                line.forEach(coord => bounds.extend(coord));
+              });
+            }
+          });
+          map.fitBounds(bounds, { padding: 50 });
+        }
+      } catch (error) {
+        console.error("Error loading radroute:", error);
+      } finally {
+        isLoading = false;
+        loadRouteBtn.disabled = false;
+        loadRouteBtn.textContent = "Load Route";
+      }
+
+
+    load_points();
+    }
+
+    function load_points() {
+         // Add source and layer
+        map.addSource("stationen-source", {
+          type: "geojson",
+          data: schulung_points,
+        });
+        
+        map.addLayer({
+          id: "stationen",
+          type: "circle",
+          source: "stationen-source",
+          paint: {
+            "circle-color": "#ff0000",
+            "circle-radius": 10,
+            "circle-opacity": 0.9,
+          },
+        });
+
+    }
+
+    // Handle feature click
+    function handleFeatureClick(e) {
+      if (e.features && e.features.length > 0) {
+        selectedFeature = e.features[0];
+        const segmentId = selectedFeature.properties.segment_id;
+        const isCompleted = completedSurveys.has(segmentId);
+        
+        if (isCompleted) {
+          dialogMessage.textContent = `Segment ${segmentId} is marked as completed. Do you want to remove it from completed or fill out the survey again?`;
+          dialogRemove.style.display = "block";
+        } else {
+          dialogMessage.textContent = `Do you want to fill out the survey for segment ${segmentId}?`;
+          dialogRemove.style.display = "none";
+        }
+        
+        confirmDialog.classList.add("show");
+      }
+    }
+
+    // Open survey modal
+    function openSurveyModal(segmentId, geometryWkb) {
+      const surveyUrl = surveyUrlInput.value.trim();
+      if (surveyUrl) {
+        const url = new URL(surveyUrl);
+        url.searchParams.set("segment_id", segmentId);
+        url.searchParams.set("geometry_wkb", geometryWkb);
+        surveyIframe.src = url.toString();
+      }
+      modalTitle.textContent = `Survey - Segment ${segmentId}`;
+      surveyModal.classList.add("show");
+      confirmDialog.classList.remove("show");
+      
+      // Highlight selected feature
+      if (map.getLayer("radroute-highlight")) {
+        map.setFilter("radroute-highlight-outline", ["==", "segment_id", segmentId]);
+        map.setFilter("radroute-highlight", ["==", "segment_id", segmentId]);
+      }
+    }
+
+    // Close survey modal
+    function closeSurveyModal() {
+      surveyModal.classList.remove("show");
+      
+      // Mark as completed if survey was opened
+      if (selectedFeature && selectedFeature.properties.segment_id) {
+        const segmentId = selectedFeature.properties.segment_id;
+        completedSurveys.add(segmentId);
+        updateCompletedSurveysLayer();
+      }
+      
+      // Clear highlight
+      if (map.getLayer("radroute-highlight")) {
+        map.setFilter("radroute-highlight-outline", ["==", "segment_id", ""]);
+        map.setFilter("radroute-highlight", ["==", "segment_id", ""]);
+      }
+      
+      // Clear iframe src to stop any playing content
+      surveyIframe.src = "";
+      selectedFeature = null;
+    }
+
+    // Update completed surveys layer
+    function updateCompletedSurveysLayer() {
+      if (map.getLayer("radroute-completed")) {
+        const filter = ["in", "segment_id", ...Array.from(completedSurveys)];
+        map.setFilter("radroute-completed", filter);
+      }
+    }
+
+    // Close confirmation dialog
+    function closeDialog() {
+      confirmDialog.classList.remove("show");
+      selectedFeature = null;
+    }
+
+    // Event listeners
+    menuToggle.addEventListener("click", () => {
+      menuPanel.classList.toggle("open");
+    });
+
+    routeSelect.addEventListener("change", (e) => {
+      selectedRouteId = parseInt(e.target.value);
+      updateDirectionSelect();
+    });
+
+    directionSelect.addEventListener("change", (e) => {
+      selectedDirection = e.target.value;
+    });
+
+    loadRouteBtn.addEventListener("click", () => {
+      loadRadroute();
+      menuPanel.classList.remove("open");
+    });
+
+    styleBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        switchMapStyle(btn.dataset.style);
+      });
+    });
+
+    dialogCancel.addEventListener("click", closeDialog);
+    dialogRemove.addEventListener("click", () => {
+      if (selectedFeature && selectedFeature.properties.segment_id) {
+        const segmentId = selectedFeature.properties.segment_id;
+        completedSurveys.delete(segmentId);
+        updateCompletedSurveysLayer();
+        closeDialog();
+      }
+    });
+    dialogSurvey.addEventListener("click", () => {
+      if (selectedFeature) {
+        const segmentId = selectedFeature.properties.segment_id;
+        const geometryWkb = selectedFeature.properties.geometry_wkb;
+        openSurveyModal(segmentId, geometryWkb);
+      }
+    });
+    confirmDialog.addEventListener("click", (e) => {
+      if (e.target === confirmDialog) {
+        closeDialog();
+      }
+    });
+
+    closeModal.addEventListener("click", closeSurveyModal);
+    closeModalFooter.addEventListener("click", closeSurveyModal);
+    surveyModal.addEventListener("click", (e) => {
+      if (e.target === surveyModal) {
+        closeSurveyModal();
+      }
+    });
+
+    // Initialize
+    initMap();
+    populateRouteSelect();
+    updateDirectionSelect();
+  </script>
+</body>
+</html>
