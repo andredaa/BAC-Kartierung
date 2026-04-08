@@ -361,6 +361,13 @@
     <h2>Radrouten</h2>
     
     <div class="form-group">
+      <label for="userSelect">Wer kartiert?</label>
+      <select id="userSelect">
+        <!-- Options will be populated by JavaScript -->
+      </select>
+    </div>
+    
+    <div class="form-group">
       <label for="routeSelect">Route ID</label>
       <select id="routeSelect">
         <!-- Options will be populated by JavaScript -->
@@ -412,6 +419,20 @@
   </div>
 
   <script>
+    const users = [
+      "Andre Landwehr",
+      "Lukas Klische",
+      "Rosa Ziemer",
+      "Jan Eschkötter",
+      "Finja Hansen",
+      "Bente Karstens",
+      "Lynn Mäurer",
+      "Emma Praetorius",
+      "Tom Türk",
+      "Tim Meyer",
+      "Henri Rosenstock",
+      "Tom Weber"
+    ]
     // Configuration
     const directionMapping = {
       0: ["Schulung"],
@@ -557,6 +578,7 @@ const schulung_points = {
     let map = null;
     let currentStyle = "light";
     let selectedRouteId = 0;
+    let selectedUser = "";
     let selectedDirection = directionMapping[0][0];
     let isLoading = false;
     let selectedFeature = null;
@@ -565,6 +587,7 @@ const schulung_points = {
     // DOM elements
     const menuToggle = document.getElementById("menuToggle");
     const menuPanel = document.getElementById("menuPanel");
+    const userSelect = document.getElementById("userSelect");
     const routeSelect = document.getElementById("routeSelect");
     const directionSelect = document.getElementById("directionSelect");
     const surveyUrlInput = document.getElementById("surveyUrlInput");
@@ -617,6 +640,18 @@ const schulung_points = {
           map.resize();
         }, 100);
       });
+    }
+
+    function populateUserSelect() {
+      userSelect.innerHTML = "";
+      users.forEach(user => {
+        const option = document.createElement("option");
+        option.value = user;
+        option.textContent = `${user}`;
+        userSelect.appendChild(option);
+      })
+
+      userSelect.value = selectedUser;
     }
 
     // Populate route select
@@ -917,12 +952,14 @@ const schulung_points = {
     }
 
     // Open survey modal
-    function openSurveyModal(segmentId, geometryWkb) {
+    function openSurveyModal(segmentId, geometryWkb, user) {
       const surveyUrl = surveyUrlInput.value.trim();
       if (surveyUrl) {
         const url = new URL(surveyUrl);
+        url.searchParams.set("user", user);
         url.searchParams.set("segment_id", segmentId);
         url.searchParams.set("geometry_wkb", geometryWkb);
+        url.searchParams.set("9e90a2e8151f4943b79b4723", "2670e59186274c25adfed9f2");
         surveyIframe.src = url.toString();
       }
       modalTitle.textContent = `Survey - Segment ${segmentId}`;
@@ -977,6 +1014,9 @@ const schulung_points = {
       menuPanel.classList.toggle("open");
     });
 
+    userSelect.addEventListener("change", (e) => {
+      selectedUser = e.target.value;
+    });
     routeSelect.addEventListener("change", (e) => {
       selectedRouteId = parseInt(e.target.value);
       updateDirectionSelect();
@@ -1010,7 +1050,7 @@ const schulung_points = {
       if (selectedFeature) {
         const segmentId = selectedFeature.properties.segment_id;
         const geometryWkb = selectedFeature.properties.geometry_wkb;
-        openSurveyModal(segmentId, geometryWkb);
+        openSurveyModal(segmentId, geometryWkb, selectedUser);
       }
     });
     confirmDialog.addEventListener("click", (e) => {
@@ -1029,6 +1069,7 @@ const schulung_points = {
 
     // Initialize
     initMap();
+    populateUserSelect();
     populateRouteSelect();
     updateDirectionSelect();
   </script>
