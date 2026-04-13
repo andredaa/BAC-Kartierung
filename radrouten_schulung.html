@@ -846,6 +846,9 @@
         url.searchParams.set("segment_id", segmentId);
         url.searchParams.set("geometry_wkb", geometryWkb);
         url.searchParams.set("9e90a2e8151f4943b79b4723", "2670e59186274c25adfed9f2");
+        // set keine Kartierung möglich für "Radroutenverlauf"
+        url.searchParams.set("74b5a5db51fa4913a6a9f3bf", "290d8348b1674421b39483a8"); 
+        url.searchParams.set("e922b34126c94acb982e3c57", "Schulungsstrecke ist keine Radroute"); 
         surveyIframe.src = url.toString();
       }
       modalTitle.textContent = `Survey - Segment ${segmentId}`;
