@@ -703,10 +703,10 @@ const schulung_points = {
       
       map.setStyle(mapStyles[style]);
       
-      // Re-add layers after style change
-      map.once("style.load", () => {
+      // Wait for style to load before adding routes
+      setTimeout(() => {
         loadRadroute();
-      });
+      }, 500);
     }
 
     // Load radroute from backend or local file
