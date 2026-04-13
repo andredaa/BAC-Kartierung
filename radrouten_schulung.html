@@ -698,51 +698,13 @@
           data = await response.json();
         }
         
-        // Generate color mapping based on segment_idx
-        const segmentColors = {};
-        const generateRandomColor = (seed) => {
-          console.log("seed", seed)
-          // Use segment_idx as seed for consistent bright colors
-          // Ensure colors are bright by adding 128 to base value (range 128-255)
-          let r = Math.floor((Math.sin(seed * 12.9898) + 1) * 63.75) + 128;
-          let g = Math.floor((Math.sin(seed * 78.233) + 1) * 63.75) + 128;
-          let b = Math.floor((Math.sin(seed * 43.758) + 1) * 63.75) + 128;
-          
-          // Avoid white/very light colors - if all channels are too high, reduce them
-          if (r > 240 && g > 240 && b > 240) {
-            // Make at least one channel significantly darker
-            const whichChannel = seed % 3;
-            if (whichChannel === 0) r = 128;
-            else if (whichChannel === 1) g = 128;
-            else b = 128;
-          }
-          
-          // Avoid dark colors by ensuring at least one channel is very bright
-          const maxChannel = Math.max(r, g, b);
-          if (maxChannel < 200) {
-            // Boost the brightest channel to make color more vibrant
-            const boostFactor = 255 / maxChannel;
-            return `rgb(${Math.min(255, Math.floor(r * boostFactor))}, ${Math.min(255, Math.floor(g * boostFactor))}, ${Math.min(255, Math.floor(b * boostFactor))})`;
-          }
-          
-          return `rgb(${r}, ${g}, ${b})`;
-        };
-        
-        // Build color expression for MapLibre
-        const colorExpression = ["match", ["get", "segment_idx"]];
-        
-        if (data.features) {
-          data.features.forEach(feature => {
-            const segmentIdx = feature.properties.segment_idx;
-            if (segmentIdx !== undefined && !segmentColors[segmentIdx]) {
-              segmentColors[segmentIdx] = generateRandomColor(segmentIdx);
-              colorExpression.push(segmentIdx, segmentColors[segmentIdx]);
-            }
-          });
-        }
-        
-        // Add fallback color
-        colorExpression.push("#ef4444");
+        // Use dual color scheme: blue for even, magenta for odd segment_idx
+        const colorExpression = [
+          "case",
+          ["==", ["%", ["get", "segment_idx"], 2], 0],
+          "#3b82f6", // Even segments: blue
+          "#ec4899"  // Odd segments: magenta/pink
+        ];
         
         // Add source and layer
         map.addSource("radroute-source", {
