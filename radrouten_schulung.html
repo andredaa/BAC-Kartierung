@@ -490,63 +490,6 @@
 ]
 };
 
-const schulung_points = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": { "station": "Geomatikum" },
-      "geometry": {
-        "coordinates": [9.973973772852673, 53.568374178481434],
-        "type": "Point"
-      },
-      "id": 0
-    },
-    {
-      "type": "Feature",
-      "properties": { "station": "Station 1" },
-      "geometry": {
-        "coordinates": [9.97166975081737, 53.57108101785366],
-        "type": "Point"
-      },
-      "id": 1
-    },
-    {
-      "type": "Feature",
-      "properties": { "station": "Station 2" },
-      "geometry": {
-        "coordinates": [9.973099637526332, 53.57409301446563],
-        "type": "Point"
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": { "station": "Station 3" },
-      "geometry": {
-        "coordinates": [9.967265905005576, 53.57448989952127],
-        "type": "Point"
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": { "station": "Station 4" },
-      "geometry": {
-        "coordinates": [9.964507575467337, 53.5732425801819],
-        "type": "Point"
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": { "station": "Station 5" },
-      "geometry": {
-        "coordinates": [9.972318980521095, 53.57032479881073],
-        "type": "Point"
-      }
-    }
-  ]
-};
-
-
     const mapStyles = {
       light: "https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json",
       dark: "https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
@@ -909,28 +852,9 @@ const schulung_points = {
       }
 
 
-    load_points();
     }
 
-    function load_points() {
-         // Add source and layer
-        map.addSource("stationen-source", {
-          type: "geojson",
-          data: schulung_points,
-        });
-        
-        map.addLayer({
-          id: "stationen",
-          type: "circle",
-          source: "stationen-source",
-          paint: {
-            "circle-color": "#ff0000",
-            "circle-radius": 10,
-            "circle-opacity": 0.9,
-          },
-        });
 
-    }
 
     // Handle feature click
     function handleFeatureClick(e) {
