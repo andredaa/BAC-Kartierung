@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Radrouten Map</title>
+  <title>Table Tennis Tables Hamburg</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css">
   <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
   <style>
@@ -48,6 +48,7 @@
       padding: 0.5rem 0.75rem;
       border-radius: 0.25rem;
       font-size: 0.875rem;
+      font-weight: 500;
       font-weight: 500;
       transition: all 0.2s;
       border: none;
@@ -381,44 +382,16 @@
     </svg>
   </button>
 
-  <!-- Download button -->
-  <a href="kartierschluessel.pdf" download="kartierschluessel.pdf" class="download-btn" title="Download Kartierschlüssel">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-  </a>
-
   <!-- Menu panel -->
   <div class="menu-panel" id="menuPanel">
-    <h2>Radrouten</h2>
-    
-    <div class="form-group">
-      <label for="userSelect">Wer kartiert?</label>
-      <select id="userSelect">
-        <!-- Options will be populated by JavaScript -->
-      </select>
-    </div>
-    
-    <div class="form-group">
-      <label for="routeSelect">Route ID</label>
-      <select id="routeSelect">
-        <!-- Options will be populated by JavaScript -->
-      </select>
-    </div>
-    
-    <div class="form-group">
-      <label for="directionSelect">Direction</label>
-      <select id="directionSelect">
-        <!-- Options will be populated by JavaScript -->
-      </select>
-    </div>
+    <h2>Table Tennis Tables</h2>
     
     <div class="form-group">
       <label for="surveyUrlInput">Survey URL</label>
-      <input type="url" id="surveyUrlInput" placeholder="Enter survey URL" value="https://app.formbricks.com/s/nek51gwt02dxrmgqwxs10884?embed=true">
+      <input type="url" id="surveyUrlInput" placeholder="Enter survey URL" value="https://app.formbricks.com/s/cmrt2e6k7maj401ue7awxcw63?embed=true">
     </div>
     
-    <button class="load-btn" id="loadRouteBtn">Load Route</button>
+    <button class="load-btn" id="loadTablesBtn">Load All Tables</button>
   </div>
 
   <!-- Confirmation Dialog -->
@@ -450,195 +423,9 @@
     </div>
   </div>
 
-  <script>
-    const users = [
-      "Andre",
-      "Carlo",
-      "Rachele"
-    ]
-    // Configuration
-    const directionMapping = {
-      0: ["Schulweg"],
-    };
-
-    const Schulweg_segments = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "segment_id": 0
-      },
-      "geometry": {
-        "coordinates": [
-          [
-            10.018094454475914,
-            53.49678908941425
-          ],
-          [
-            10.01606903435254,
-            53.497360173991865
-          ]
-        ],
-        "type": "LineString"
-      },
-      "id": 0
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "segment_id": 1
-      },
-      "geometry": {
-        "coordinates": [
-          [
-            10.01603391146142,
-            53.497368879489215
-          ],
-          [
-            10.015489506630132,
-            53.49682042962061
-          ]
-        ],
-        "type": "LineString"
-      },
-      "id": 1
-    },
-    {
-      "type": "Feature",
-      "properties": {"segment_id": 99},
-      "geometry": {
-        "coordinates": [
-          [
-            10.015450685046346,
-            53.49675981185251
-          ],
-          [
-            10.012818716336596,
-            53.49464193823667
-          ],
-          [
-            10.012424556771236,
-            53.49438476066689
-          ],
-          [
-            10.012157545452965,
-            53.494241043110605
-          ]
-        ],
-        "type": "LineString"
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "segment_id": 3
-      },
-      "geometry": {
-        "coordinates": [
-          [
-            10.012233834401457,
-            53.494203222619916
-          ],
-          [
-            10.013263735200695,
-            53.493386291790046
-          ],
-          [
-            10.013416313096712,
-            53.49321987802489
-          ]
-        ],
-        "type": "LineString"
-      },
-      "id": 3
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "segment_id": 6
-      },
-      "geometry": {
-        "coordinates": [
-          [
-            10.012008015170096,
-            53.494170336261476
-          ],
-          [
-            10.009687933575492,
-            53.493308638731975
-          ],
-          [
-            10.009534116010457,
-            53.49323238146991
-          ]
-        ],
-        "type": "LineString"
-      },
-      "id": 4
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "segment_id": 7
-      },
-      "geometry": {
-        "coordinates": [
-          [
-            10.009565819339713,
-            53.49321470572747
-          ],
-          [
-            10.009413250933505,
-            53.49186328394802
-          ]
-        ],
-        "type": "LineString"
-      },
-      "id": 5
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "segment_id": 4
-      },
-      "geometry": {
-        "coordinates": [
-          [
-            10.013382508244405,
-            53.49320173032257
-          ],
-          [
-            10.013261544079114,
-            53.49317633133424
-          ]
-        ],
-        "type": "LineString"
-      },
-      "id": 6
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "segment_id": 5
-      },
-      "geometry": {
-        "coordinates": [
-          [
-            10.013242030134933,
-            53.49320094892556
-          ],
-          [
-            10.012142679334318,
-            53.49417456536722
-          ]
-        ],
-        "type": "LineString"
-      },
-      "id": 7
-    }
-  ]
-}
+  <script type="module">
+    import { geojson } from './table_tennis_tables_hamburg.js';
+    
     const mapStyles = {
       light: "https://tiles.basemaps.cartocdn.com/gl/positron-gl-style/style.json",
       dark: "https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
@@ -669,21 +456,15 @@
     // State
     let map = null;
     let currentStyle = "light";
-    let selectedRouteId = 0;
-    let selectedUser = "";
-    let selectedDirection = directionMapping[0][0];
     let isLoading = false;
     let selectedFeature = null;
-    let completedSurveys = new Set();
+    let selectedLocationId = null;
 
     // DOM elements
     const menuToggle = document.getElementById("menuToggle");
     const menuPanel = document.getElementById("menuPanel");
-    const userSelect = document.getElementById("userSelect");
-    const routeSelect = document.getElementById("routeSelect");
-    const directionSelect = document.getElementById("directionSelect");
     const surveyUrlInput = document.getElementById("surveyUrlInput");
-    const loadRouteBtn = document.getElementById("loadRouteBtn");
+    const loadTablesBtn = document.getElementById("loadTablesBtn");
     const surveyModal = document.getElementById("surveyModal");
     const surveyIframe = document.getElementById("surveyIframe");
     const modalTitle = document.getElementById("modalTitle");
@@ -701,8 +482,8 @@
       map = new maplibregl.Map({
         container: "map",
         style: mapStyles[currentStyle],
-        center: [10.0, 51.5],
-        zoom: 6,
+        center: [10.0, 53.5],
+        zoom: 10,
         renderWorldCopies: false,
         attributionControl: true
       });
@@ -730,52 +511,9 @@
       map.on('load', () => {
         setTimeout(() => {
           map.resize();
+          loadTableTennisData();
         }, 100);
       });
-    }
-
-    function populateUserSelect() {
-      userSelect.innerHTML = "";
-      users.forEach(user => {
-        const option = document.createElement("option");
-        option.value = user;
-        option.textContent = `${user}`;
-        userSelect.appendChild(option);
-      })
-
-      userSelect.value = selectedUser;
-    }
-
-    // Populate route select
-    function populateRouteSelect() {
-      routeSelect.innerHTML = "";
-      const Schulweg = document.createElement("option");
-      Schulweg.value = 0;
-      Schulweg.textContent = `Schulweg`;
-      routeSelect.appendChild(Schulweg);
-      for (let i = 1; i <= 23; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = `Route ${i}`;
-        routeSelect.appendChild(option);
-      }
-      routeSelect.value = selectedRouteId;
-    }
-
-    // Update direction select based on selected route
-    function updateDirectionSelect() {
-      const directions = directionMapping[selectedRouteId] || ["Nord", "Süd"];
-      directionSelect.innerHTML = "";
-      
-      directions.forEach(direction => {
-        const option = document.createElement("option");
-        option.value = direction;
-        option.textContent = direction;
-        directionSelect.appendChild(option);
-      });
-      
-      selectedDirection = directions[0];
-      directionSelect.value = selectedDirection;
     }
 
     // Switch map style
@@ -797,130 +535,59 @@
       
       // Wait for style to load before adding routes
       setTimeout(() => {
-        loadRadroute();
+        loadTableTennisData();
       }, 500);
     }
 
-    // Load radroute from backend or local file
-    async function loadRadroute() {
-      console.log("loading route", selectedDirection, selectedRouteId, map);
-      if (!map || selectedRouteId === undefined || !selectedDirection) return;
+    // Load all table tennis features
+    async function loadTableTennisData() {
+      if (!map) return;
       
       isLoading = true;
-      loadRouteBtn.disabled = true;
-      loadRouteBtn.textContent = "Loading...";
+      loadTablesBtn.disabled = true;
+      loadTablesBtn.textContent = "Loading...";
       
       try {
-        // Remove existing radroute layers if present
-        const layersToRemove = ["radroute-label", "radroute-highlight", "radroute-highlight-outline", "radroute-completed", "radroute"];
+        // Remove existing layers if present
+        const layersToRemove = ["table-tennis-label", "table-tennis"];
         layersToRemove.forEach(layerId => {
           if (map.getLayer(layerId)) {
             map.removeLayer(layerId);
           }
         });
-        if (map.getSource("radroute-source")) {
-          map.removeSource("radroute-source");
+        if (map.getSource("table-tennis-source")) {
+          map.removeSource("table-tennis-source");
         }
         
-        let data;
-        console.log("hello", selectedRouteId, selectedDirection)
-        // Check if route 1 Ost - load from local file
-        if (selectedRouteId === 0 && selectedDirection === "Schulweg") {
-          console.log("using debug json")
-          data = Schulweg_segments;
-          
-        } else {
-          // Fetch radroute data from backend
-          const url = `http://localhost:5000/get_layer?layer_name=radrouten&route_id=${selectedRouteId}&direction=${encodeURIComponent(selectedDirection)}`;
-          const response = await fetch(url, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-          
-          if (!response.ok) {
-            console.error("Failed to fetch radroute:", response.status);
-            return;
-          }
-          
-          data = await response.json();
-        }
-        
-        // Use dual color scheme: blue for even, magenta for odd segment_idx
-        const colorExpression = [
-          "case",
-          ["==", ["%", ["get", "segment_id"], 2], 0],
-          "#3b82f6", // Even segments: blue
-          "#ec4899"  // Odd segments: magenta/pink
-        ];
-        
-        // Add source and layer
-        map.addSource("radroute-source", {
+        // Add source with imported geojson data
+        map.addSource("table-tennis-source", {
           type: "geojson",
-          data: data,
+          data: geojson,
         });
         
+        // Add circle layer for table tennis locations
         map.addLayer({
-          id: "radroute",
-          type: "line",
-          source: "radroute-source",
+          id: "table-tennis",
+          type: "circle",
+          source: "table-tennis-source",
           paint: {
-            "line-color": colorExpression,
-            "line-width": 8,
-            "line-opacity": 0.8,
-          },
+            "circle-radius": 8,
+            "circle-color": "#3b82f6",
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#fff"
+          }
         });
 
-        // Add layer for completed surveys (black)
+        // Add label layer with location names
         map.addLayer({
-          id: "radroute-completed",
-          type: "line",
-          source: "radroute-source",
-          paint: {
-            "line-color": "#000000",
-            "line-width": 4,
-            "line-opacity": 0.8,
-          },
-          filter: ["in", "segment_id"],
-        });
-
-        // Add white outline layer for highlighted feature
-        map.addLayer({
-          id: "radroute-highlight-outline",
-          type: "line",
-          source: "radroute-source",
-          paint: {
-            "line-color": "#ffffff",
-            "line-width": 8,
-            "line-opacity": 1,
-          },
-          filter: ["==", "segment_id", ""],
-        });
-
-        // Add layer for highlighted feature
-        map.addLayer({
-          id: "radroute-highlight",
-          type: "line",
-          source: "radroute-source",
-          paint: {
-            "line-color": "#fbbf24",
-            "line-width": 6,
-            "line-opacity": 1,
-          },
-          filter: ["==", "segment_id", ""],
-        });
-
-        // Add label layer for all segments
-        map.addLayer({
-          id: "radroute-label",
+          id: "table-tennis-label",
           type: "symbol",
-          source: "radroute-source",
+          source: "table-tennis-source",
           layout: {
-            "text-field": ["get", "segment_idx"],
-            "text-size": 14,
-            "text-offset": [0, -1.5],
-            "symbol-placement": "line-center",
+            "text-field": ["get", "name"],
+            "text-size": 12,
+            "text-offset": [0, -2],
+            "text-allow-overlap": false
           },
           paint: {
             "text-color": "#000000",
@@ -930,121 +597,66 @@
         });
 
         // Add click handler for features
-        map.on("click", "radroute", handleFeatureClick);
-        map.on("mouseenter", "radroute", () => {
+        map.on("click", "table-tennis", handleFeatureClick);
+        map.on("mouseenter", "table-tennis", () => {
           map.getCanvas().style.cursor = "pointer";
         });
-        map.on("mouseleave", "radroute", () => {
+        map.on("mouseleave", "table-tennis", () => {
           map.getCanvas().style.cursor = "";
         });
         
-        // Fit map to radroute bounds
-        if (data.features && data.features.length > 0) {
-          const bounds = new maplibregl.LngLatBounds();
-          data.features.forEach(feature => {
-            if (feature.geometry.type === "LineString") {
-              feature.geometry.coordinates.forEach(coord => {
-                bounds.extend(coord);
-              });
-            } else if (feature.geometry.type === "MultiLineString") {
-              feature.geometry.coordinates.forEach(line => {
-                line.forEach(coord => bounds.extend(coord));
-              });
-            }
-          });
-          map.fitBounds(bounds, { padding: 50 });
-        }
+        console.log(`Loaded ${geojson.features.length} table tennis locations`);
+        
       } catch (error) {
-        console.error("Error loading radroute:", error);
+        console.error("Error loading table tennis data:", error);
       } finally {
         isLoading = false;
-        loadRouteBtn.disabled = false;
-        loadRouteBtn.textContent = "Load Route";
+        loadTablesBtn.disabled = false;
+        loadTablesBtn.textContent = "Load All Tables";
       }
-
-
     }
-
 
 
     // Handle feature click
     function handleFeatureClick(e) {
       if (e.features && e.features.length > 0) {
         selectedFeature = e.features[0];
-        const segmentId = selectedFeature.properties.segment_id;
-        const isCompleted = completedSurveys.has(segmentId);
+        selectedLocationId = selectedFeature.properties["@id"];
+        console.log("feature id", selectedLocationId);
         
-        if (isCompleted) {
-          dialogMessage.textContent = `Segment ${segmentId} is marked as completed. Do you want to remove it from completed or fill out the survey again?`;
-          dialogRemove.style.display = "block";
-        } else {
-          dialogMessage.textContent = `Do you want to fill out the survey for segment ${segmentId}?`;
-          dialogRemove.style.display = "none";
-        }
-        
+        dialogMessage.textContent = `Open survey for ${selectedLocationId}?`;
+        dialogRemove.style.display = "none";
         confirmDialog.classList.add("show");
       }
     }
 
     // Open survey modal
-    function openSurveyModal(segmentId, geometryWkb, user) {
+    function openSurveyModal() {
       const surveyUrl = surveyUrlInput.value.trim();
       if (surveyUrl) {
         const url = new URL(surveyUrl);
-        url.searchParams.set("user", user);
-        url.searchParams.set("segment_id", segmentId);
-        url.searchParams.set("geometry_wkb", geometryWkb);
-        url.searchParams.set("9e90a2e8151f4943b79b4723", "2670e59186274c25adfed9f2");
-        // set keine Kartierung möglich für "Radroutenverlauf"
-        url.searchParams.set("74b5a5db51fa4913a6a9f3bf", "290d8348b1674421b39483a8"); 
-        url.searchParams.set("e922b34126c94acb982e3c57", "Schulwegsstrecke ist keine Radroute"); 
+        url.searchParams.set("location_id", selectedLocationId);
         surveyIframe.src = url.toString();
       }
-      modalTitle.textContent = `Survey - Segment ${segmentId}`;
+      const locationName = selectedLocationId;
+      modalTitle.textContent = `Survey - ${locationName}`;
       surveyModal.classList.add("show");
       confirmDialog.classList.remove("show");
-      
-      // Highlight selected feature
-      if (map.getLayer("radroute-highlight")) {
-        map.setFilter("radroute-highlight-outline", ["==", "segment_id", segmentId]);
-        map.setFilter("radroute-highlight", ["==", "segment_id", segmentId]);
-      }
     }
 
     // Close survey modal
     function closeSurveyModal() {
       surveyModal.classList.remove("show");
-      
-      // Mark as completed if survey was opened
-      if (selectedFeature && selectedFeature.properties.segment_id) {
-        const segmentId = selectedFeature.properties.segment_id;
-        completedSurveys.add(segmentId);
-        updateCompletedSurveysLayer();
-      }
-      
-      // Clear highlight
-      if (map.getLayer("radroute-highlight")) {
-        map.setFilter("radroute-highlight-outline", ["==", "segment_id", ""]);
-        map.setFilter("radroute-highlight", ["==", "segment_id", ""]);
-      }
-      
-      // Clear iframe src to stop any playing content
       surveyIframe.src = "";
       selectedFeature = null;
-    }
-
-    // Update completed surveys layer
-    function updateCompletedSurveysLayer() {
-      if (map.getLayer("radroute-completed")) {
-        const filter = ["in", "segment_id", ...Array.from(completedSurveys)];
-        map.setFilter("radroute-completed", filter);
-      }
+      selectedLocationId = null;
     }
 
     // Close confirmation dialog
     function closeDialog() {
       confirmDialog.classList.remove("show");
       selectedFeature = null;
+      selectedLocationId = null;
     }
 
     // Event listeners
@@ -1052,20 +664,8 @@
       menuPanel.classList.toggle("open");
     });
 
-    userSelect.addEventListener("change", (e) => {
-      selectedUser = e.target.value;
-    });
-    routeSelect.addEventListener("change", (e) => {
-      selectedRouteId = parseInt(e.target.value);
-      updateDirectionSelect();
-    });
-
-    directionSelect.addEventListener("change", (e) => {
-      selectedDirection = e.target.value;
-    });
-
-    loadRouteBtn.addEventListener("click", () => {
-      loadRadroute();
+    loadTablesBtn.addEventListener("click", () => {
+      loadTableTennisData();
       menuPanel.classList.remove("open");
     });
 
@@ -1076,20 +676,8 @@
     });
 
     dialogCancel.addEventListener("click", closeDialog);
-    dialogRemove.addEventListener("click", () => {
-      if (selectedFeature && selectedFeature.properties.segment_id) {
-        const segmentId = selectedFeature.properties.segment_id;
-        completedSurveys.delete(segmentId);
-        updateCompletedSurveysLayer();
-        closeDialog();
-      }
-    });
     dialogSurvey.addEventListener("click", () => {
-      if (selectedFeature) {
-        const segmentId = selectedFeature.properties.segment_id;
-        const geometryWkb = selectedFeature.properties.geometry_wkb;
-        openSurveyModal(segmentId, geometryWkb, selectedUser);
-      }
+      openSurveyModal();
     });
     confirmDialog.addEventListener("click", (e) => {
       if (e.target === confirmDialog) {
@@ -1107,9 +695,6 @@
 
     // Initialize
     initMap();
-    populateUserSelect();
-    populateRouteSelect();
-    updateDirectionSelect();
   </script>
 </body>
 </html>
